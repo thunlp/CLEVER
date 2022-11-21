@@ -1,6 +1,6 @@
 # Visually Grounded Commonsense Knowledge Acquisition
 
-The code and datasets of our paper [Visually Grounded Commonsense Knowledge Acquisition](https://not_available_yet).
+The code and datasets of our AAAI 2023 paper [Visually Grounded Commonsense Knowledge Acquisition](https://not_available_yet).
 
 ## Overview
 

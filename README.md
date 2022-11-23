@@ -33,11 +33,11 @@ bash train.sh
 Please consider citing this paper if you use the code:
 
 ```bib
-@article{yao2023clever,
+@inproceedings{yao2023clever,
   title={Visually Grounded Commonsense Knowledge Acquisition},
-  author={Yuan Yao, Tianyu Yu, Ao Zhang, Mengdi Li, Ruobing Xie, Cornelius Weber, Zhiyuan Liu, Hai-Tao Zheng, Stefan Wermter, Tat-Seng Chua, Maosong Sun},
-  journal={Proceedings of AAAI},
-  year={2022}
+  author={Yao, Yuan and Yu, Tianyu and Zhang, Ao and Li, Mengdi and Xie, Ruobing and Weber, Cornelius and Liu, Zhiyuan and Zheng, Haitao and Wermter, Stefan and Chua, Tat-Seng and Sun, Maosong},
+  booktitle={Proceedings of AAAI},
+  year={2023}
 }
 ```
 

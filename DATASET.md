@@ -4,6 +4,9 @@
 
 ```sh
 cd data
+bash download.sh # Download necessary data files
 
-bash download.sh
+cd ..
+mkdir output
+bash download_weight.sh # Download necessary weight files and unarchive
 ```

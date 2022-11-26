@@ -29,10 +29,6 @@ select_size = 10
 loss_w_t = 0.5
 
 
-def attention_analysis_file():
-    return f'/data/private/yutianyu/dump_score/{get_rank()}.txt'
-
-
 class VRDBaselineModel(BertPreTrainedModel):
     def __init__(self, config):
         super(VRDBaselineModel, self).__init__(config)
@@ -506,7 +502,8 @@ def instanceMaxHead(pair_feats, classifier):
 
 
 def forward_bag_pair_as_unit(model, label, input_ids, token_type_ids, attention_mask, img_feats,
-                             object_box_lists, object_name_positions_lists, training, attention_label):
+                             object_box_lists, object_name_positions_lists, training, attention_label,
+                             get_feat=False):
     # get output feat for images in this bag
     shard_size = 50 if training else 50
     num_shard = math.ceil(input_ids.shape[0] / shard_size)
@@ -542,6 +539,8 @@ def forward_bag_pair_as_unit(model, label, input_ids, token_type_ids, attention_
 
     pair_feat = torch.stack(pair_feat)
     pair_attention_label = torch.tensor(pair_attention_label)
+    if get_feat:
+        return pair_feat
 
     bag_logits, attention_loss = model.head(pair_feat, label, pair_attention_label)
 
@@ -656,9 +655,6 @@ def select_images(model, bag_labels, bag_input_ids, bag_token_type_ids, bag_atte
                 all_pair_feat.append(pair_feat)
                 all_pair_img_idx.append(pair_image_idx)
 
-                open(attention_analysis_file(), 'a').write(f'{key}\n'
-                                                           f'{pair_image_idx}\n')
-
     return all_selected_images, all_pair_feat, all_pair_img_idx, all_pair_scores
 
 
@@ -690,8 +686,10 @@ class BagModel(BertPreTrainedModel):
             self.head = BagOriginAttention(feat_size, self.classifier)
         elif head == 'one':
             self.head = BagOne(feat_size, self.classifier)
+        elif head == 'max':
+            pass
         else:
-            raise NotImplemented
+            raise NotImplementedError
 
     def forward(self, bag_input_ids, bag_token_type_ids=None, bag_attention_mask=None,
                 position_ids=None, head_mask=None, bag_img_feats=None, bag_object_box_lists=None,
@@ -724,11 +722,20 @@ class BagModel(BertPreTrainedModel):
                 sum_loss = w * attention_loss + (1 - w) * bag_loss
                 loss_list.append(sum_loss)
             else:
-                bag_logits, attention_loss = forward_bag_pair_as_unit(
-                    model=self, label=label, input_ids=input_ids, token_type_ids=token_type_ids,
-                    attention_mask=attention_mask, img_feats=img_feats, object_box_lists=object_box_lists,
-                    object_name_positions_lists=object_name_positions_lists, attention_label=attention_label,
-                    training=True)
+                if head == 'max':
+                    pair_feat = forward_bag_pair_as_unit(
+                        model=self, label=label, input_ids=input_ids, token_type_ids=token_type_ids,
+                        attention_mask=attention_mask, img_feats=img_feats, object_box_lists=object_box_lists,
+                        object_name_positions_lists=object_name_positions_lists, attention_label=attention_label,
+                        training=False, get_feat=True)
+                    bag_logits = instanceMaxHead(pair_feat, self.classifier)
+                else:
+                    bag_logits, attention_loss = forward_bag_pair_as_unit(
+                        model=self, label=label, input_ids=input_ids, token_type_ids=token_type_ids,
+                        attention_mask=attention_mask, img_feats=img_feats, object_box_lists=object_box_lists,
+                        object_name_positions_lists=object_name_positions_lists, attention_label=attention_label,
+                        training=False)
+                # return torch.stack([pair_scores.sum(0) / len(pair_scores) for pair_scores in all_pair_scores])
                 logits_list.append(bag_logits)
 
         return sum(loss_list) / len(loss_list) if self.training else torch.stack(logits_list)

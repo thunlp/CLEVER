@@ -36,5 +36,12 @@ python setup.py build develop
 # install requirements
 pip install -r requirements.txt
 
+
+# for Prompt-FT baseline and LAMA
+conda create --name CLEVER_prompt_env python=3.7
+conda activate CLEVER
+conda install pytorch==1.7.1 torchvision==0.8.2 cudatoolkit=11.0 -c pytorch
+conda install openprompt
+
 unset INSTALL_DIR
 ```

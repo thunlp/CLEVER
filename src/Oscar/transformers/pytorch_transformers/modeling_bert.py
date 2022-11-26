@@ -26,7 +26,7 @@ from io import open
 
 import torch
 from torch import nn
-from torch.nn import CrossEntropyLoss, MSELoss
+from torch.nn import CrossEntropyLoss, MSELoss, BCEWithLogitsLoss
 
 from .modeling_utils import (WEIGHTS_NAME, CONFIG_NAME, PretrainedConfig, PreTrainedModel,
                              prune_linear_layer, add_start_docstrings)
@@ -756,7 +756,7 @@ class BertForPreTraining(BertPreTrainedModel):
 
         >>> config = BertConfig.from_pretrained('bert-base-uncased')
         >>> tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-        >>> 
+        >>>
         >>> model = BertForPreTraining(config)
         >>> input_ids = torch.tensor(tokenizer.encode("Hello, my dog is cute")).unsqueeze(0)  # Batch size 1
         >>> outputs = model(input_ids)
@@ -826,7 +826,7 @@ class BertForMaskedLM(BertPreTrainedModel):
 
         >>> config = BertConfig.from_pretrained('bert-base-uncased')
         >>> tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-        >>> 
+        >>>
         >>> model = BertForMaskedLM(config)
         >>> input_ids = torch.tensor(tokenizer.encode("Hello, my dog is cute")).unsqueeze(0)  # Batch size 1
         >>> outputs = model(input_ids, masked_lm_labels=input_ids)
@@ -893,7 +893,7 @@ class BertForNextSentencePrediction(BertPreTrainedModel):
 
         >>> config = BertConfig.from_pretrained('bert-base-uncased')
         >>> tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-        >>> 
+        >>>
         >>> model = BertForNextSentencePrediction(config)
         >>> input_ids = torch.tensor(tokenizer.encode("Hello, my dog is cute")).unsqueeze(0)  # Batch size 1
         >>> outputs = model(input_ids)
@@ -953,7 +953,7 @@ class BertForSequenceClassification(BertPreTrainedModel):
 
         >>> config = BertConfig.from_pretrained('bert-base-uncased')
         >>> tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-        >>> 
+        >>>
         >>> model = BertForSequenceClassification(config)
         >>> input_ids = torch.tensor(tokenizer.encode("Hello, my dog is cute")).unsqueeze(0)  # Batch size 1
         >>> labels = torch.tensor([1]).unsqueeze(0)  # Batch size 1
@@ -988,8 +988,12 @@ class BertForSequenceClassification(BertPreTrainedModel):
                 loss_fct = MSELoss()
                 loss = loss_fct(logits.view(-1), labels.view(-1))
             else:
-                loss_fct = CrossEntropyLoss()
-                loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
+                if self.config.problem_type == 'multi_label_classification':
+                    loss_fct = BCEWithLogitsLoss()
+                    loss = loss_fct(logits, labels)
+                else:
+                    loss_fct = CrossEntropyLoss()
+                    loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
             outputs = (loss,) + outputs
 
         return outputs  # (loss), logits, (hidden_states), (attentions)
@@ -1009,15 +1013,15 @@ class BertForMultipleChoice(BertPreTrainedModel):
             (a) For sequence pairs:
 
                 ``tokens:         [CLS] is this jack ##son ##ville ? [SEP] no it is not . [SEP]``
-                
+
                 ``token_type_ids:   0   0  0    0    0     0       0   0   1  1  1  1   1   1``
 
             (b) For single sequences:
 
                 ``tokens:         [CLS] the dog is hairy . [SEP]``
-                
+
                 ``token_type_ids:   0   0   0   0  0     0   0``
-    
+
             Indices can be obtained using :class:`pytorch_transformers.BertTokenizer`.
             See :func:`pytorch_transformers.PreTrainedTokenizer.encode` and
             :func:`pytorch_transformers.PreTrainedTokenizer.convert_tokens_to_ids` for details.
@@ -1059,7 +1063,7 @@ class BertForMultipleChoice(BertPreTrainedModel):
 
         >>> config = BertConfig.from_pretrained('bert-base-uncased')
         >>> tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-        >>> 
+        >>>
         >>> model = BertForMultipleChoice(config)
         >>> choices = ["Hello, my dog is cute", "Hello, my cat is amazing"]
         >>> input_ids = torch.tensor([tokenizer.encode(s) for s in choices]).unsqueeze(0)  # Batch size 1, 2 choices
@@ -1129,7 +1133,7 @@ class BertForTokenClassification(BertPreTrainedModel):
 
         >>> config = BertConfig.from_pretrained('bert-base-uncased')
         >>> tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-        >>> 
+        >>>
         >>> model = BertForTokenClassification(config)
         >>> input_ids = torch.tensor(tokenizer.encode("Hello, my dog is cute")).unsqueeze(0)  # Batch size 1
         >>> labels = torch.tensor([1] * input_ids.size(1)).unsqueeze(0)  # Batch size 1
@@ -1205,7 +1209,7 @@ class BertForQuestionAnswering(BertPreTrainedModel):
 
         >>> config = BertConfig.from_pretrained('bert-base-uncased')
         >>> tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-        >>> 
+        >>>
         >>> model = BertForQuestionAnswering(config)
         >>> input_ids = torch.tensor(tokenizer.encode("Hello, my dog is cute")).unsqueeze(0)  # Batch size 1
         >>> start_positions = torch.tensor([1])

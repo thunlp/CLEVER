@@ -393,6 +393,8 @@ def train(args, train_loader, val_loader, test_loader, model, scheduler, optimiz
     log_loss = 0
 
     pre_eval = True
+    if args.head == 'max':
+        val_loader = test_loader
     if pre_eval:
         val_rtn = eval(args, model, val_loader, tokenizer, desc=f'Eval Epoch-{0}/{config.num_train_steps}')
 
@@ -411,9 +413,9 @@ def train(args, train_loader, val_loader, test_loader, model, scheduler, optimiz
                     f'micro-f1:{val_rtn["max_micro_f1"]:.4f}, '
                     f'macro-f1:{val_rtn["max_macro_f1"]:.4f}, p@2%:{val_rtn["p@2%"]:.4f}, '
                     f'mp@2%:{val_rtn["mp@2%"]:.4f}')
-
-    # print('End pre eval and exit myself')
-    # exit()
+    if args.head == 'max':
+        print(f'End eval for VRD-{args.head} evaluation')
+        exit()
 
     for epoch in range(args.num_train_epochs):
         desc = f'Training Epoch-{epoch + 1}/{args.num_train_epochs}'
@@ -656,6 +658,7 @@ def main():
     parser.add_argument('--real_bag_size', type=int, default=10)
     parser.add_argument('--mAUC_weight', type=int, default=1)
     parser.add_argument('--pretrained_weight', type=str, default='')
+    parser.add_argument('--VRD_weight', type=str, default='')
 
     args = parser.parse_args()
 
@@ -702,8 +705,11 @@ def main():
     print(f'Load from {checkpoint}')
 
     if modeling_gre.head == 'att' and args.pretrained_weight:
-        print(f'Load pretrained weight from args.pretrained_weight')
+        print(f'Load pretrained weight from {args.pretrained_weight}')
         model.load_state_dict(torch.load(args.pretrained_weight, map_location='cpu'), strict=False)
+    elif modeling_gre.head in ['avg', 'max'] and args.VRD_weight:
+        print(f'Load pretrained weight from {args.VRD_weight}')
+        model.load_state_dict(torch.load(args.VRD_weight, map_location='cpu'), strict=False)
 
     # distributed
     if args.distributed:

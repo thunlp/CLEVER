@@ -4,10 +4,11 @@ SAMPLE_PER_CARD=6
 EVAL_SAMPLE_PER_CARD=1
 ACCUMULATE_STEP=2
 WARMUP_STEP=2000
-HEAD=att
+HEAD=att # [att, origin_att, avg, one]
 
 seed=42
 for lr in {4e-5,5e-5,6e-5}; do
+  for mAUC_weight in {1,3,5}; do
   CUDA_VISIBLE_DEVICES=2,5,6 python -m torch.distributed.launch --nproc_per_node=3 --master_port 10225 oscar/run_bag.py \
     --eval_model_dir ${OUTPUT_DIR}/pretrained_model/pretrained_base/checkpoint-2000000/ \
     --pretrained_weight ${OUTPUT_DIR}/pretrained_avg_model/model.bin \
@@ -22,12 +23,13 @@ for lr in {4e-5,5e-5,6e-5}; do
     --per_gpu_eval_batch_size ${EVAL_SAMPLE_PER_CARD} \
     --num_train_epochs 100 \
     --freeze_embedding \
-    --output_dir ${OUTPUT_DIR}/${HEAD}_lr${lr}_bsz-10card-${SAMPLE_PER_CARD}-${ACCUMULATE_STEP}_seed${seed}_warm${WARMUP_STEP} \
+    --output_dir ${OUTPUT_DIR}/${HEAD}_lr${lr}_bsz-10card-${SAMPLE_PER_CARD}-${ACCUMULATE_STEP}_seed${seed}_warm${WARMUP_STEP}_mAUC${mAUC_weight} \
     --sfmx_t 11 \
     --attention_w 0.0 \
     --head ${HEAD}\
     --real_bag_size 50 \
     --select_size 50 \
     --seed ${seed} \
-    --mAUC_weight 3
+    --mAUC_weight ${mAUC_weight}
+  done
 done

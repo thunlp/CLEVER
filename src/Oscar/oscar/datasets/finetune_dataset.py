@@ -378,7 +378,7 @@ class BagDatasetPairAsUnit(Dataset):
             seen.add((item['class_pair'][0], item['class_pair'][1], item['relation']))
         pred_result = deduplicated_pred_result
 
-        print(f'Sorting evaluation results, size={len(pred_result)}')
+        # print(f'Sorting evaluation results, size={len(pred_result)}')
         sorted_pred_result = sorted(pred_result, key=lambda x: x['score'], reverse=True)
 
         sorted_pred_result = [(x['class_pair'][0], x['class_pair'][1], x['relation'], x['score']) for x in
@@ -429,40 +429,27 @@ class BagDatasetPairAsUnit(Dataset):
 
 
 class NormalFinetuneDataset(Dataset):
-    def __init__(self, data_file, args=None, tokenizer=None, txt_seq_len=70, img_seq_len=50, shuffle=False, **kwargs):
+    def __init__(self, data_dir, split, args=None, tokenizer=None, txt_seq_len=70, img_seq_len=50, shuffle=False,
+                 **kwargs):
         self.vocab = tokenizer.vocab
         self.tokenizer = tokenizer
         self.txt_seq_len = txt_seq_len
         self.img_seq_len = img_seq_len
 
-        base_dir = f'/data_local/yutianyu'
-        data_dir = f'{base_dir}/datasets/scene_graph_benchmark_data/visualgenome/visualgenome'
-        if 'train' in data_file:
-            if args.shot == -1:
-                self.label_tsv = TSVFile(f'{data_dir}/yty_100_100_label_low_resource_keep{args.keep_ratio}.tsv')
-            else:
-                self.label_tsv = TSVFile(f'{data_dir}/yty_100_100_label_low_resource_{args.shot}shot.tsv')
+        # base_dir = f'/data_local/yutianyu'
+        # data_dir = f'{base_dir}/datasets/scene_graph_benchmark_data/visualgenome/visualgenome'
+        if split == 'train':
+            self.label_tsv = TSVFile(f'{data_dir}/VRD/VRD_{args.shot}shot.tsv')
         else:
-            self.label_tsv = TSVFile(f'{data_dir}/yty_100_100_label.tsv')
-        # self.label_tsv = TSVFile(f'{data_dir}/vg150.tsv')
+            self.label_tsv = TSVFile(f'{data_dir}/VG_100_100_label.tsv')
 
-        self.prediction = TSVFile(data_file)
-        self.line_tsv = TSVFile(data_file + '.line_list.tsv')
+        self.prediction = TSVFile(f'{data_dir}/obj_feat_{split}.tsv')
+        self.line_tsv = TSVFile(f'{data_dir}/{split}_feat_idx_to_label_line.tsv')
         self.item_idx_to_prediction_line = list(range(len(self.prediction)))
-        self.data_file = data_file
-        if 'train' in data_file:
-            if args.shot == -1:
-                self.item_idx_to_prediction_line = json.load(
-                    open(
-                        f'{data_dir}/yty_100_100_label_low_resource_keep{args.keep_ratio}_prediction_line_numbers.json'))
-            else:
-                self.item_idx_to_prediction_line = json.load(
-                    open(f'{data_dir}/yty_100_100_label_low_resource_{args.shot}shot_prediction_line_numbers.json'))
+        if split == 'train':
+            self.item_idx_to_prediction_line = json.load(open(f'{data_dir}/VRD/VRD_{args.shot}shot_feat-lines.json'))
 
-        self.predicate_to_idx = json.load(open(
-            f'{base_dir}/datasets/VisualGenome/100_100_fix/VG-dicts_100_cls_100_pred_with_100_cls_to_vg_150_mapping.json'))[
-            'predicate_to_idx']
-
+        self.predicate_to_idx = json.load(open(f'{data_dir}/vg_dict.json'))['predicate_to_idx']
         self.shuffle = shuffle
 
         # copy from scene-graph-benchmark config

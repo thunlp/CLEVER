@@ -41,7 +41,17 @@ python vanilla_ft.py
 
 # LAMA and Prompt-FT
 cd src
+conda activate CLEVER_prompt_env # to resolve dependency conflic
 python prompt_ft.py
+```
+
+### Image-based Baseline
+
+```sh
+cd Oscar
+bash run_instance_pred_cls.sh
+
+bash run_VRD_baseline.sh
 ```
 
 ## Citation

@@ -32,3 +32,7 @@ wget https://thunlp.oss-cn-qingdao.aliyuncs.com/CLEVER_CKE_train_feat_idx_to_lab
 # Download label file
 wget https://thunlp.oss-cn-qingdao.aliyuncs.com/CLEVER_AAAI23_VG100-100_label.tsv -O VG_100_100_label.tsv
 
+# Download VRD-baseline data files
+mkdir VRD && cd VRD
+wget https://thunlp.oss-cn-qingdao.aliyuncs.com/CLEVER_CKE_VRD-data_100shot.tsv -O VRD_100shot.tsv
+wget https://thunlp.oss-cn-qingdao.aliyuncs.com/CLEVER_CKE_VRD-data_100shot_feat-file_line-ids.json -O VRD_100shot_feat-lines.json

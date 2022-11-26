@@ -98,6 +98,7 @@ def cal_pred_cls_ng_recall_img(scores, num_box, relations):
     # print(recalls)
     return recalls, predicate_recalls
 
+
 def cal_pred_cls_recall_img(scores, num_box, relations):
     relations = [tuple(r) for r in relations]
     ks = [20, 50, 100]
@@ -240,17 +241,11 @@ def collate(batch):
 
 
 def build_test_dataset(data_file, tokenizer, args):
-    if not op.isfile(data_file):
-        data_file = op.join(args.test_dir, data_file)
-        assert op.isfile(data_file), f'{data_file}'
-    return NormalFinetuneDataset(data_file, tokenizer=tokenizer, args=args, shuffle=False)
+    return NormalFinetuneDataset(args.test_dir, data_file, tokenizer=tokenizer, args=args, shuffle=False)
 
 
 def build_train_dataset(data_file, tokenizer, args):
-    if not op.isfile(data_file):
-        data_file = op.join(args.train_dir, data_file)
-        assert op.isfile(data_file), f'{data_file}'
-    return NormalFinetuneDataset(data_file, tokenizer=tokenizer, args=args, shuffle=False)
+    return NormalFinetuneDataset(args.train_dir, data_file, tokenizer=tokenizer, args=args, shuffle=False)
 
 
 def make_data_sampler(dataset, shuffle, distributed):
@@ -334,7 +329,7 @@ def eval(args, model, data_loader, tokenizer, desc='Eval'):
             # image_recalls, image_predicate_recalls = cal_pred_cls_ng_recall_img(img_scores, len(img_obj_boxes),
             #                                                                     img_relations)
             image_recalls, image_predicate_recalls = cal_pred_cls_recall_img(img_scores, len(img_obj_boxes),
-                                                                                img_relations)
+                                                                             img_relations)
             world_all_scores[img_key] = {
                 'scores': img_scores.cpu(),
                 'relations': img_relations
@@ -590,9 +585,9 @@ def main():
     parser.add_argument('--min_constraints_to_satisfy', type=int, default=2,
                         help="minimum number of constraints to satisfy")
 
-    parser.add_argument('--keep_ratio', type=float, default=1.0,
-                        help='Low resource scenario train label keep ratio')
-    parser.add_argument('--shot', type=int, default=-1,
+    # parser.add_argument('--keep_ratio', type=float, default=1.0,
+    #                     help='Low resource scenario train label keep ratio')
+    parser.add_argument('--shot', type=int, default=100,
                         help='Low resource scenario train label shot')
     parser.add_argument('--eval_period', type=int, default=1,
                         help='number of training epochs between evaluation')
@@ -647,12 +642,14 @@ def main():
             flush_secs=10
         )
 
-    train_loader = make_data_loader(args, "predictions_train.tsv", tokenizer, is_distributed=args.distributed,
-                                    is_train=True)
-    val_loader = make_data_loader(args, "predictions_val.tsv", tokenizer, is_distributed=args.distributed,
-                                  is_train=False)
-    test_loader = make_data_loader(args, "predictions_test.tsv", tokenizer, is_distributed=args.distributed,
-                                   is_train=False)
+    if local_rank != 0:
+        torch.distributed.barrier()
+
+    train_loader = make_data_loader(args, 'train', tokenizer, is_distributed=args.distributed, is_train=True)
+    val_loader = make_data_loader(args, 'val', tokenizer, is_distributed=args.distributed, is_train=False)
+    test_loader = make_data_loader(args, 'test', tokenizer, is_distributed=args.distributed, is_train=False)
+    if local_rank == 0:
+        torch.distributed.barrier()
 
     print(f'Train-size: {len(train_loader.dataset)} samples, {len(train_loader)} batches, '
           f'Val-size: {len(val_loader.dataset)} samples, {len(val_loader)} batches'

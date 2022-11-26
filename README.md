@@ -56,9 +56,9 @@ bash run_VRD_baseline.sh
 
 ## Extracted Commonsense Knowledge
 
-We can download the commonsense knowledge triplets extracted from our test split by CELEVER from [here](https://thunlp.oss-cn-qingdao.aliyuncs.com/CLEVER_CKE_triplets_extracted_from_test.json). The data structure is:
+You can download the commonsense knowledge triplets extracted by CELEVER on test split from [here](https://thunlp.oss-cn-qingdao.aliyuncs.com/CLEVER_CKE_triplets_extracted_from_test.json). The data structure is:
 
-```json
+```sh
 [
     (subject, object, predicate, commonsense_confidence),
     ...

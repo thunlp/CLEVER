@@ -26,7 +26,23 @@ cd src/Oscar
 bash train.sh
 ```
 
+## Baselines
 
+### Text-based Baselines
+
+We directly use [RTP](https://nlp.stanford.edu/software/scenegraph-parser.shtml) to extract triplets from [Conceptual Captions](https://github.com/google-research-datasets/conceptual-captions) which contains more than 3 millon image captions. Triplets are sorted by frequency for evaluation.
+
+### PLM-based Baselines
+
+```sh
+# Vanilla-FT
+cd src
+python vanilla_ft.py
+
+# LAMA and Prompt-FT
+cd src
+python prompt_ft.py
+```
 
 ## Citation
 

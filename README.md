@@ -1,12 +1,12 @@
 # Visually Grounded Commonsense Knowledge Acquisition
 
-The code and datasets of our AAAI 2023 paper [Visually Grounded Commonsense Knowledge Acquisition](https://not_available_yet).
+The code and datasets of our AAAI 2023 paper [Visually Grounded Commonsense Knowledge Acquisition](https://arxiv.org/abs/2211.12054).
 
 ## Overview
 
-![CLEVER Framework](figs/framework.jpg)
+![CLEVER Framework](figs/Demo.jpg)
 
-In this work, we propose to formulate Commonsense Knowledge Extraction (CKE) as a distantly supervised multi-instance learning problem and present a dedicated CKE framework CLEVER that integrate VLP models with contrastive attention to deal with complex commonsense relation learning. You can find more details in our [paper](https://not_available_yet).
+In this work, we propose to formulate Commonsense Knowledge Extraction (CKE) as a distantly supervised multi-instance learning problem. Given an entity pair (such as *person-bottle*) and associated images, our model first understands entity interactions in each image, and then selects informative ones (solid line) to summarize the commonsense relations. We present a dedicated CKE framework CLEVER that integrate VLP models with contrastive attention to deal with complex commonsense relation learning. You can find more details in our [paper](https://arxiv.org/abs/2211.12054).
 
 
 ## Installation
